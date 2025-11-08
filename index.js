@@ -4,12 +4,20 @@ import { XMLParser } from "fast-xml-parser";
 const app = express();
 const port = process.env.PORT || 10000;
 
-app.use(express.text({ type: ["application/xml", "text/xml", "*/*"] }));
+// YALNIZCA XML'i text olarak al
+app.use(
+  express.text({
+    type: ["application/xml", "text/xml"],
+    defaultCharset: "utf-8",
+  })
+);
 
-// Basit log
+// Basit log (body string ise yaz)
 app.use((req, _res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  if (req.body) console.log("body:", req.body.slice(0, 300));
+  if (typeof req.body === "string" && req.body.length) {
+    console.log("body:", req.body.slice(0, 300));
+  }
   next();
 });
 
@@ -18,14 +26,13 @@ app.get("/", (_req, res) => {
   res.json({ ok: true, service: "xml-mock", time: new Date().toISOString() });
 });
 
-// Default mock cevabı dönen endpoint
+// Default mock cevabı (XML -> XML)
 app.post(["/", "/cc5/pay"], (req, res) => {
   try {
-    const parser = new XMLParser({ ignoreAttributes: false });
-    const data = parser.parse(req.body);
+    const parser = new XMLParser({ ignoreAttributes: false, trimValues: true });
+    const data = parser.parse(req.body || "");
 
-    const orderId =
-      data?.CC5Request?.OrderId || "UNKNOWN_ORDER";
+    const orderId = data?.CC5Request?.OrderId || "UNKNOWN_ORDER";
     const responseXml = `
 <CC5Response>
     <OrderId>${orderId}</OrderId>
@@ -45,17 +52,17 @@ app.post(["/", "/cc5/pay"], (req, res) => {
         <KAZANILANPUAN>000000010.00</KAZANILANPUAN>
         <NUMCODE>00</NUMCODE>
     </Extra>
-</CC5Response>`;
+</CC5Response>`.trim();
 
     res.set("Content-Type", "application/xml; charset=utf-8");
-    res.status(200).send(responseXml.trim());
+    res.status(200).send(responseXml);
   } catch (err) {
     console.error("Parse error:", err);
     res.status(400).send("<error>Invalid XML</error>");
   }
 });
 
-// Server start
+// Start
 app.listen(port, () => {
   console.log(`✅ XML mock sunucusu ${port} portunda yayında`);
 });
