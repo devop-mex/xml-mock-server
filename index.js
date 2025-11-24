@@ -39,6 +39,10 @@ app.post(["/", "/cc5/pay"], (req, res) => {
     const parser = new XMLParser({ ignoreAttributes: false, trimValues: true });
     const data = parser.parse(req.body || "");
 
+    // FULL DATA DEBUG
+    console.log("\n🔍 FULL PARSED DATA:");
+    console.log(JSON.stringify(data, null, 2));
+
     // OrderId boş gelirse dinamik oluştur
     const orderId = data?.CC5Request?.OrderId || `ORDER-${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
     
@@ -48,7 +52,9 @@ app.post(["/", "/cc5/pay"], (req, res) => {
     console.log("\n🔍 DEBUG:");
     console.log("OrderId:", orderId);
     console.log("MAXIPUANSORGU değeri:", maxiPuanSorgu);
+    console.log("MAXIPUANSORGU type:", typeof maxiPuanSorgu);
     console.log("Extra içeriği:", JSON.stringify(data?.CC5Request?.Extra, null, 2));
+    console.log("Kontrol sonucu:", maxiPuanSorgu === "MAXIPUANSORGU");
     if (maxiPuanSorgu === "MAXIPUANSORGU") {
       console.log("\n🔍 MAXIPUANSORGU talebi algılandı");
       console.log("📦 OrderId:", orderId);
