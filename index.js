@@ -4,10 +4,10 @@ import { XMLParser } from "fast-xml-parser";
 const app = express();
 const port = process.env.PORT || 10000;
 
-// YALNIZCA XML'i text olarak al
+// Tüm request body'leri text olarak al (XML, JSON header'ı ile gelse bile)
 app.use(
   express.text({
-    type: ["application/xml", "text/xml"],
+    type: ["application/xml", "text/xml", "application/json", "*/*"],
     defaultCharset: "utf-8",
   })
 );
