@@ -70,7 +70,7 @@ app.post(["/", "/cc5/pay"], (req, res) => {
     <Extra>
         <ERRORCODE></ERRORCODE>
         <NUMCODE>00</NUMCODE>
-        <HOSTMSG>TOPLAMMAXIPUAN: 50.00 TL</HOSTMSG>
+        <HOSTMSG>TOPLAMMAXIPUAN: 100000.00 TL</HOSTMSG>
         <MAXIPUAN>50.00</MAXIPUAN>
         <HOSTDATE>1124-111536</HOSTDATE>
     </Extra>
