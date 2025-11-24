@@ -33,6 +33,34 @@ app.post(["/", "/cc5/pay"], (req, res) => {
     const data = parser.parse(req.body || "");
 
     const orderId = data?.CC5Request?.OrderId || "UNKNOWN_ORDER";
+    
+    // MAXIPUANSORGU kontrolü
+    const maxiPuanSorgu = data?.CC5Request?.MAXIPUANSORGU;
+    if (maxiPuanSorgu === "MAXIPUANSORGU") {
+      const maxiPuanResponseXml = `
+<CC5Response>
+    <ErrMsg></ErrMsg>
+    <OrderId>${orderId}</OrderId>
+    <ProcReturnCode>00</ProcReturnCode>
+    <Response>Approved</Response>
+    <AuthCode>P11222</AuthCode>
+    <TransId>25328LPjH13565</TransId>
+    <HostRefNum>532800067953</HostRefNum>
+    <Extra>
+        <ERRORCODE></ERRORCODE>
+        <NUMCODE>00</NUMCODE>
+        <HOSTMSG>TOPLAMMAXIPUAN: 50.00 TL</HOSTMSG>
+        <MAXIPUAN>50.00</MAXIPUAN>
+        <HOSTDATE>1124-111536</HOSTDATE>
+    </Extra>
+</CC5Response>`.trim();
+
+      res.set("Content-Type", "application/xml; charset=utf-8");
+      res.status(200).send(maxiPuanResponseXml);
+      return;
+    }
+
+    // Normal ödeme yanıtı
     const responseXml = `
 <CC5Response>
     <OrderId>${orderId}</OrderId>
