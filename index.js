@@ -46,15 +46,45 @@ app.post(["/", "/cc5/pay"], (req, res) => {
     // OrderId boş gelirse dinamik oluştur
     const orderId = data?.CC5Request?.OrderId || `ORDER-${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
     
+    // 3D kontrolü - STORETYPE parametresi
+    const storeType = data?.CC5Request?.Extra?.STORETYPE;
+    
     // MAXIPUANSORGU kontrolü - Extra tag'i içinde
     const maxiPuanSorgu = data?.CC5Request?.Extra?.MAXIPUANSORGU;
     
     console.log("\n🔍 DEBUG:");
     console.log("OrderId:", orderId);
+    console.log("STORETYPE değeri:", storeType);
     console.log("MAXIPUANSORGU değeri:", maxiPuanSorgu);
-    console.log("MAXIPUANSORGU type:", typeof maxiPuanSorgu);
     console.log("Extra içeriği:", JSON.stringify(data?.CC5Request?.Extra, null, 2));
-    console.log("Kontrol sonucu:", maxiPuanSorgu === "MAXIPUANSORGU");
+
+    // 1. ÖNCELİK: 3D Secure işlemi
+    if (storeType === "3d" || storeType === "3D" || storeType === "3d_pay" || storeType === "3D_PAY") {
+      console.log("\n🔐 3D Secure işlemi algılandı");
+      console.log("📦 OrderId:", orderId);
+      
+      const threeDResponseXml = `<CC5Response>
+    <OrderId>${orderId}</OrderId>
+    <ProcReturnCode>00</ProcReturnCode>
+    <Response>Approved</Response>
+    <ErrMsg></ErrMsg>
+    <Extra>
+        <ERRORCODE></ERRORCODE>
+        <NUMCODE>00</NUMCODE>
+        <HOSTMSG>3D Secure Doğrulama Gerekli</HOSTMSG>
+    </Extra>
+</CC5Response>`;
+
+      console.log("\n📤 Dönen 3D Response XML:");
+      console.log(threeDResponseXml);
+      console.log("\n" + "=".repeat(80) + "\n");
+      
+      res.set("Content-Type", "application/xml; charset=utf-8");
+      res.status(200).send(threeDResponseXml);
+      return;
+    }
+
+    // 2. ÖNCELİK: MAXIPUANSORGU kontrolü
     if (maxiPuanSorgu === "MAXIPUANSORGU") {
       console.log("\n🔍 MAXIPUANSORGU talebi algılandı");
       console.log("📦 OrderId:", orderId);
@@ -85,7 +115,7 @@ app.post(["/", "/cc5/pay"], (req, res) => {
       return;
     }
 
-    // Normal ödeme yanıtı
+    // 3. VARSAYILAN: Normal ödeme yanıtı
     console.log("\n💳 Normal ödeme işlemi");
     console.log("📦 OrderId:", orderId);
     
